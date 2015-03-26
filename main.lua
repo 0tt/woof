@@ -166,8 +166,9 @@ function love.load()
 					local ob = obj.getBouncines and obj:getBouncines() or 0
 					local left = 	(ox - ow / 2) - (x - w / 2) --left edge		< left edge
 					local right = 	(x + w / 2) - (ox + ow / 2) --right edge	> right edge
-					local bottom = 	(oy - oh / 2) - (y - h / 2) --bottom edge	< bottom edge
-					local top = 	(y + h / 2) - (oy + oh / 2) --top edge		> top edge
+					local bottom =	(y + h / 2) - (oy + oh / 2) --top edge		> top edge
+					local top = 	(oy - oh / 2) - (y - h / 2) --bottom edge	< bottom edge	
+					
 					local edges = {
 						{key = "left", val = left}, 
 						{key = "right", val = right}, 
@@ -183,12 +184,12 @@ function love.load()
 					elseif edges[1].key == "right" then
 						px = (ox + ow / 2) + w / 2
 						vx = -vx * (b + ob)
-					elseif edges[1].key == "top" then
-						py = (oy + oh / 2) + h / 2
-						vy = -vy * (b + ob)
 					elseif edges[1].key == "bottom" then
 						py = (oy - oh / 2) - h / 2
 						vy = -vy * (b + ob)
+					elseif edges[1].key == "top" then
+						--py = (oy + oh / 2) + h / 2
+						--vy = -vy * (b + ob)
 					end
 
 					local max = 0
@@ -201,8 +202,9 @@ function love.load()
 								
 								local left = 	(ox - ow / 2) - (x - w / 2) --left edge		< left edge
 								local right = 	(x + w / 2) - (ox + ow / 2) --right edge	> right edge
-								local bottom = 	(oy - oh / 2) - (y - h / 2) --bottom edge	< bottom edge
-								local top = 	(y + h / 2) - (oy + oh / 2) --top edge		> top edge
+								local bottom = 	(y + h / 2) - (oy + oh / 2) --top edge		> top edge
+								local top = 	(oy - oh / 2) - (y - h / 2) --bottom edge	< bottom edge
+								
 								local edges = {
 									{key = "left", val = left}, 
 									{key = "right", val = right}, 
@@ -225,10 +227,11 @@ function love.load()
 							end
 						end
 					end
-					if max < 4 or bot <= 4 then
-						self:setPos(px, py)
-						self:setVel(vx, vy)
+					if bot <= 8 then
+						--self:setPos(px, py)
 					end
+					self:setPos(px, py)
+					self:setVel(vx, vy)
 				end
 			end
 		end
@@ -291,8 +294,16 @@ function love.load()
 
 	love.graphics.setBackgroundColor(255, 255, 255)
 end
+local function round(...)
+	local args = {...}
+	for i = 1, #args do
+		args[i] = math.floor(args[i])
+	end
+	return unpack(args)
+end
 function love.draw()
-	love.graphics.print(table.concat({Player:getPos()}, ", "), 0, 0)
+	love.graphics.setColor(0, 0, 0, 255)
+	love.graphics.print(table.concat({round(Player:getPos())}, ", "), 0, 0)
 	love.graphics.push()
 		love.graphics.translate(WIDTH / 2, HEIGHT / 2)
 		love.graphics.scale(1, -1)
