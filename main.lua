@@ -185,11 +185,11 @@ function love.load()
 						px = (ox + ow / 2) + w / 2
 						vx = -vx * (b + ob)
 					elseif edges[1].key == "bottom" then
-						py = (oy - oh / 2) - h / 2
+						py = (oy + oh / 2) + h / 2
 						vy = -vy * (b + ob)
 					elseif edges[1].key == "top" then
-						--py = (oy + oh / 2) + h / 2
-						--vy = -vy * (b + ob)
+						py = (oy - oh / 2) - h / 2 - 1
+						vy = -vy * (b + ob)
 					end
 
 					local max = 0
@@ -327,6 +327,10 @@ function love.keypressed(key)
 		local vx, vy = Player:getVel()
 		vy = vy + 200
 		Player:setVel(vx, vy)
+	end
+	if key == "r" then
+		Player:setPos(0, 0)
+		Player:setVel(0, 0)
 	end
 end
 function love.mousepressed(x, y, but)
