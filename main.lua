@@ -1,8 +1,11 @@
 function love.load()
 	ents = {}
 	colliders = {}
-	WIDTH = 800
-	HEIGHT = 600
+	love.window.setMode(800, 600, {
+		fullscreen = true,
+		fullscreentype = "desktop",
+	})
+	WIDTH, HEIGHT = love.window.getDimensions()
 
 	function screenToWorld(x, y)
 		return x - WIDTH / 2, -(y - HEIGHT / 2)
