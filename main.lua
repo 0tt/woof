@@ -90,7 +90,7 @@ function love.load()
 
 	end
 	function Entity:remove()
-		colliders[self] = true
+		colliders[self] = nil
 		table.remove(ents, self.id)
 	end
 	
