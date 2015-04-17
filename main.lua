@@ -28,6 +28,7 @@ function love.load()
 		cg = 0,
 		cb = 0,
 		ca = 255,
+		id = 0,
 		rotation = 0,
 		collide = true,
 	}
@@ -70,14 +71,15 @@ function love.load()
 		self.collide = b
 	end
 	function Entity:spawn()
-		table.insert(ents, self) 
+		local id = table.insert(ents, self) 
 		local w, h = self:getSize()
 		if w + h ~= 0 and self:getCollide() then
-			table.insert(colliders, self)
+			colliders[self] = true
 		end
-		self:init()
+		self.id = id
+		self:init(id)
 	end
-	function Entity:init()
+	function Entity:init(id)
 
 	end
 	function Entity:draw()
@@ -86,6 +88,10 @@ function love.load()
 	end
 	function Entity:update(dt)
 
+	end
+	function Entity:remove()
+		colliders[self] = true
+		table.remove(ents, self.id)
 	end
 	
 	Phys = Entity:new{
@@ -160,7 +166,7 @@ function love.load()
 		local vx, vy = self:getVel()
 		local b = self:getBounciness()
 		local changed = false
-		for i, obj in ipairs(colliders) do
+		for obj in pairs(colliders) do
 			if obj ~= self then
 				if self:isTouching(obj) then
 					local ox, oy = obj:getPos()
@@ -184,55 +190,17 @@ function love.load()
 					if edges[1].key == "left" then
 						px = (ox - ow / 2) - w / 2
 						vx = -vx * (b + ob)
-					elseif edges[1].key == "right" then
+					end if edges[1].key == "right" then
 						px = (ox + ow / 2) + w / 2
 						vx = -vx * (b + ob)
-					elseif edges[1].key == "bottom" then
+					end if edges[1].key == "top" then
+						py = (oy - oh / 2) - h / 2
+						vy = -vy * (b + ob)
+					end if edges[1].key == "bottom" then
 						py = (oy + oh / 2) + h / 2
 						vy = -vy * (b + ob)
-					elseif edges[1].key == "top" then
-						py = (oy - oh / 2) - h / 2 - 1
-						vy = -vy * (b + ob)
-					end
-
-					local max = 0
-					local bot = 0
-					for i, obj in ipairs(colliders) do --TODO: FINISH THIS
-						if obj ~= self then
-							if self:isTouching(px, py, self:getSize()) then
-								local ox, oy = px, py
-								local ow, oh = self:getSize()
-								
-								local left = 	(ox - ow / 2) - (x - w / 2) --left edge		< left edge
-								local right = 	(x + w / 2) - (ox + ow / 2) --right edge	> right edge
-								local bottom = 	(y + h / 2) - (oy + oh / 2) --top edge		> top edge
-								local top = 	(oy - oh / 2) - (y - h / 2) --bottom edge	< bottom edge
-								
-								local edges = {
-									{key = "left", val = left}, 
-									{key = "right", val = right}, 
-									{key = "bottom", val = bottom}, 
-									{key = "top", val = top}
-								}
-								table.sort(edges, function(a, b)
-									return a.val > b.val
-								end)
-								local m = 0
-								for i = 1, #edges do
-									m = m + edges[i].val
-								end
-								if m > max then
-									max = m
-								end	
-								if bottom > bot then
-									bot = bottom
-								end
-							end
-						end
-					end
-					if bot <= 8 then
-						--self:setPos(px, py)
-					end
+					end 
+					
 					self:setPos(px, py)
 					self:setVel(vx, vy)
 				end
