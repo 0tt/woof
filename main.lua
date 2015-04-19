@@ -1,3 +1,5 @@
+require("util")
+require("lovedebug")
 function love.load()
 	ents = {}
 	colliders = {}
@@ -15,8 +17,8 @@ function love.load()
 	end
 
 	World = {
-		gx = 0,
-		gy = 500,
+		gx = 100,
+		gy = 0,
 	}
 	Entity = {
 		class = "Entity",
@@ -165,47 +167,75 @@ function love.load()
 		local w, h = self:getSize()
 		local vx, vy = self:getVel()
 		local b = self:getBounciness()
+		local ob = 0
 		local changed = false
+		edges = {}
 		for obj in pairs(colliders) do
 			if obj ~= self then
 				if self:isTouching(obj) then
 					local ox, oy = obj:getPos()
 					local ow, oh = obj:getSize()
+					ob = math.max(ob, obj.getBouncines and obj:getBouncines() or 0)
+					local right = 	-((x - w / 2) - (ox - ow / 2)) --left edge	< left edge
+					local left = 	((x + w / 2) - (ox + ow / 2)) --right edge	> right edge
+					local bottom =	((y - h / 2) - (oy - oh / 2)) --bottom edge	> bottom edge
+					local top = 	-((y + h / 2) - (oy + oh / 2)) --top edge	< top edge	
 					
-					local ob = obj.getBouncines and obj:getBouncines() or 0
-					local left = 	(ox - ow / 2) - (x - w / 2) --left edge		< left edge
-					local right = 	(x + w / 2) - (ox + ow / 2) --right edge	> right edge
-					local bottom =	(y + h / 2) - (oy + oh / 2) --top edge		> top edge
-					local top = 	(oy - oh / 2) - (y - h / 2) --bottom edge	< bottom edge	
-					
-					local edges = {
-						{key = "left", val = left}, 
-						{key = "right", val = right}, 
-						{key = "bottom", val = bottom}, 
-						{key = "top", val = top}
+					local objedges = {
+						{key = "left", val = left, pos = (ox + ow / 2) + w / 2}, 
+						{key = "right", val = right, pos = (ox - ow / 2) - w / 2}, 
+						{key = "bottom", val = bottom, pos = (oy + oh / 2) + h / 2}, 
+						{key = "top", val = top, pos = (oy - oh / 2) - h / 2}
 					}
-					table.sort(edges, function(a, b)
+					table.sort(objedges, function(a, b)
 						return a.val > b.val
 					end)
-					if edges[1].key == "left" then
-						px = (ox - ow / 2) - w / 2
-						vx = -vx * (b + ob)
-					end if edges[1].key == "right" then
-						px = (ox + ow / 2) + w / 2
-						vx = -vx * (b + ob)
-					end if edges[1].key == "top" then
-						py = (oy - oh / 2) - h / 2
-						vy = -vy * (b + ob)
-					end if edges[1].key == "bottom" then
-						py = (oy + oh / 2) + h / 2
-						vy = -vy * (b + ob)
-					end 
-					
-					self:setPos(px, py)
-					self:setVel(vx, vy)
+					for i = 1, #objedges do
+						if objedges[i].val > 0 then
+							edges[#edges + 1] = objedges[i]
+						end
+					end
 				end
 			end
 		end
+		local max = {
+			top = 0,
+			bottom = 0,
+			left = 0,
+			right = 0,
+		}
+		for i = 1, #edges do
+			local e = edges[i]
+			if e.val > 0 then
+				if e.key == "left" then
+					if e.val > max.left then
+						px = e.pos
+						vx = -vx * (b + ob)
+						max.left = e.val
+					end
+				elseif e.key == "right" then
+					if e.val > max.right then
+						px = e.pos
+						vx = -vx * (b + ob)
+						max.right = e.val
+					end
+				elseif e.key == "top" then
+					if e.val > max.top then
+						py = e.pos
+						vy = -vy * (b + ob)
+						max.top = e.val
+					end
+				elseif e.key == "bottom" then
+					if e.val > max.bottom then
+						py = e.pos
+						vy = -vy * (b + ob)
+						max.bottom = e.val
+					end
+				end 
+			end
+		end
+		self:setPos(px, py)
+		self:setVel(vx, vy)
 		return changed
 	end
 	function Phys:doGravity(dt)
