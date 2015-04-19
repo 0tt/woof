@@ -17,8 +17,8 @@ function love.load()
 	end
 
 	World = {
-		gx = 100,
-		gy = 0,
+		gx = 0,
+		gy = 500,
 	}
 	Entity = {
 		class = "Entity",
