@@ -176,10 +176,10 @@ function love.load()
 					local ox, oy = obj:getPos()
 					local ow, oh = obj:getSize()
 					ob = math.max(ob, obj.getBouncines and obj:getBouncines() or 0)
-					local right = 	(x + w / 2) - (ox + ow / 2)
-					local left = 	(ox - ow / 2) - (x - w / 2)
-					local bottom =	(oy - oh / 2) - (y - h / 2)
-					local top = 	(y + h / 2) - (oy + oh / 2)
+					local right = 	(x + w / 2) - (ox + ow / 2) - w / 2
+					local left = 	(ox - ow / 2) - (x - w / 2) - w / 2
+					local bottom =	(oy - oh / 2) - (y - h / 2) - h / 2
+					local top = 	(y + h / 2) - (oy + oh / 2) - h / 2
 					
 					local objedges = {
 						{key = "right", val = right, pos = (ox + ow / 2) + w / 2}, 
