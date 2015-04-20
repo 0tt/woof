@@ -13,7 +13,12 @@ function table.print(t)
 		for k in pairs(t) do
 			keys[#keys + 1] = k
 		end
-		table.sort(keys)
+		table.sort(keys, function(a, b)
+			if type(a) == "number" and type(b) == "number" then 
+				return a < b 
+			end
+			return tostring(a) < tostring(b)
+		end)
 		for i = 1, #keys do
 			if type(t[keys[i]])=="table" then
 				if not table.exists(done, t[keys[i]]) then
