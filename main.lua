@@ -39,6 +39,7 @@ function love.load()
 		setmetatable(o, {
 			__index = self,
 		})
+		o.class = o.class or self.class
 		return o
 	end
 	function Entity:getPos()
@@ -72,11 +73,34 @@ function love.load()
 	function Entity:setCollide(b)
 		self.collide = b
 	end
+	function Entity:isTouching(obj_or_x, y, w, h)
+		local px, py, pw, ph, ox, oy, ow, oh
+		if y then
+			px, py = self:getPos()
+			pw, ph = self:getSize()
+			ox, oy = obj_or_x, y
+			ow, oh = w, h
+		else
+			x, y = self:getPos()
+			w, h = self:getSize()
+			ox, oy = obj_or_x:getPos()
+			ow, oh = obj_or_x:getSize()
+		end
+		if  x + w / 2 >= ox - ow / 2 --right edge > left edge
+		and x - w / 2 <= ox + ow / 2 --left edge < right edge
+		and y + h / 2 >= oy - oh / 2 --top edge > bottom edge
+		and y - h / 2 <= oy + oh / 2 --bottom edge < top edge
+		then
+			return true
+		end
+		return false 
+	end
 	function Entity:spawn()
-		local id = table.insert(ents, self) 
+		local id = #ents + 1
+		ents[id] = self
 		local w, h = self:getSize()
 		if w + h ~= 0 and self:getCollide() then
-			colliders[self] = true
+			colliders[id] = self
 		end
 		self.id = id
 		self:init(id)
@@ -92,8 +116,9 @@ function love.load()
 
 	end
 	function Entity:remove()
-		colliders[self] = nil
+		colliders[self.id] = nil
 		table.remove(ents, self.id)
+		print("removed", self.id)
 	end
 	
 	Phys = Entity:new{
@@ -126,27 +151,6 @@ function love.load()
 		local x, y = self:getPos()
 		self:setPos(x + vx * dt, y + vy * dt)
 	end
-	function Phys:isTouching(obj_or_x, y, w, h)
-		local px, py, pw, ph, ox, oy, ow, oh
-		if y then
-			px, py = self:getPos()
-			pw, ph = self:getSize()
-			ox, oy = obj_or_x, y
-			ow, oh = w, h
-		else
-			x, y = self:getPos()
-			w, h = self:getSize()
-			ox, oy = obj_or_x:getPos()
-			ow, oh = obj_or_x:getSize()
-		end
-		if  x + w / 2 >= ox - ow / 2 --right edge > left edge
-		and x - w / 2 <= ox + ow / 2 --left edge < right edge
-		and y + h / 2 >= oy - oh / 2 --top edge > bottom edge
-		and y - h / 2 <= oy + oh / 2 --bottom edge < top edge
-		then
-			return true
-		end
-	end
 	function Phys:doFriction(dt)
 		local vx, vy = self:getVel()
 		local ax, ay = 0, 0
@@ -170,7 +174,7 @@ function love.load()
 		local ob = 0
 		local changed = false
 		edges = {}
-		for obj in pairs(colliders) do
+		for id, obj in pairs(colliders) do
 			if obj ~= self then
 				if self:isTouching(obj) then
 					local ox, oy = obj:getPos()
@@ -320,5 +324,30 @@ function love.mousereleased(x, y, but)
 		a:setSize(w, h)
 		a:setPos(center(gx, gy, GhostPosX, GhostPosY))
 		a:spawn()
+		--[[
+		local x, y = a:getPos()
+		print()
+		print()
+		print(1)
+		for id, e in pairs(colliders) do
+			print(tostring(e))
+			if e.class == "Entity" then
+				print("\t", 1)
+				local ex, ey = e:getPos()
+				local ew, eh = e:getSize()
+				if ex == x and ew == w and ey ~= y and a:isTouching(e) then
+					print("\t", 2)
+					e:remove()
+					a:remove()
+					local n = Entity:new()
+					n:setSize(w, h + eh)
+					n:setPos(center(ex, ey, x, y))
+					n:spawn()
+					print("\t", 3, tostring(n))
+				end
+			end
+		end
+		print(2)
+		--]]
 	end
 end
