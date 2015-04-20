@@ -1,5 +1,5 @@
 --local _Debug table for holding all variables
-local _Debug = {
+_Debug = {
 	errors = {},
 	prints = {},
 	order = {},
@@ -70,8 +70,11 @@ _G["print"] = function(...)
 	for i = 1, select('#', ...) do
 		str[i] = tostring(select(i, ...))
 	end
-	table.insert(_Debug.prints, table.concat(str, "       "))
-	table.insert(_Debug.order, "p" .. tostring(#_Debug.prints))
+	local con = table.concat(str, "       ")
+	for w in string.gmatch(con, "[^\n]+") do
+		table.insert(_Debug.prints, w)
+		table.insert(_Debug.order, "p" .. tostring(#_Debug.prints))
+	end
 end
 
 
@@ -86,6 +89,8 @@ _Debug.handleError = function(err)
 	end
 	table.insert(_Debug.errors, err)
 	table.insert(_Debug.order, "e" .. tostring(#_Debug.errors))
+	local trace = (debug.traceback("", 2):gsub("\n[^\n]+$", ""))
+	print(string.sub(trace, 18, -1))
 end
 
 
