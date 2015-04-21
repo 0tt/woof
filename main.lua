@@ -15,8 +15,15 @@ function love.load()
 	loadSprites("pug")
 	loadSprites("lab")
 	
+	fonts = {}
+	fonts.banner = love.graphics.newFont(60)
+	fonts.text = love.graphics.newFont(12)
+	
+	focused = false
+	
 	ents = {}
 	colliders = {}
+	
 	love.window.setMode(800, 600, {
 		fullscreen = true,
 		fullscreentype = "desktop",
@@ -380,6 +387,7 @@ local function round(...)
 	return unpack(args)
 end
 function love.draw()
+	love.graphics.setFont(fonts.text)
 	love.graphics.setColor(0, 0, 0, 255)
 	love.graphics.print(table.concat({round(Player:getPos())}, ", "), 0, 0)
 	love.graphics.push()
@@ -394,8 +402,16 @@ function love.draw()
 			love.graphics.pop()
 		end
 	love.graphics.pop()
+	if not focused then
+		love.graphics.setColor(0, 0, 0, 255)
+		love.graphics.setFont(fonts.banner)
+		love.graphics.rectangle("fill", 0, HEIGHT / 2 - 32, WIDTH, 64)
+		love.graphics.setColor(255, 255, 255, 255)
+		love.graphics.printf("Click to focus!", 0, HEIGHT / 2 - 32, WIDTH, "center")
+	end
 end
 function love.update(dt)
+	if not focused then return end
 	for k, v in ipairs(ents) do
 		v:update(dt)
 	end
@@ -412,9 +428,11 @@ function love.keypressed(key)
 	end
 end
 function love.mousepressed(x, y, but)
+	if not focused then return end
 	GhostPosX, GhostPosY = Ghost:getPos()
 end
 function love.mousereleased(x, y, but)
+	if not focused then return end
 	if but == "l" then
 		local gx, gy = Ghost:getPos()
 		local w, h = math.abs(GhostPosX - gx), math.abs(GhostPosY - gy)
@@ -424,30 +442,8 @@ function love.mousereleased(x, y, but)
 		a:setSize(w, h)
 		a:setPos(center(gx, gy, GhostPosX, GhostPosY))
 		a:spawn()
-		--[[
-		local x, y = a:getPos()
-		print()
-		print()
-		print(1)
-		for id, e in pairs(colliders) do
-			print(tostring(e))
-			if e.class == "Entity" then
-				print("\t", 1)
-				local ex, ey = e:getPos()
-				local ew, eh = e:getSize()
-				if ex == x and ew == w and ey ~= y and a:isTouching(e) then
-					print("\t", 2)
-					e:remove()
-					a:remove()
-					local n = Entity:new()
-					n:setSize(w, h + eh)
-					n:setPos(center(ex, ey, x, y))
-					n:spawn()
-					print("\t", 3, tostring(n))
-				end
-			end
-		end
-		print(2)
-		--]]
 	end
+end
+function love.focus(f)
+	focused = f
 end
