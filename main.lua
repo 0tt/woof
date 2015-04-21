@@ -299,7 +299,14 @@ function love.load()
 
 	Pawn = Phys:new{
 		class = "Pawn",
+		direction = LEFT,
 	}
+	function Pawn:getDirection()
+		return self.direction
+	end
+	function Pawn:setDirection(dir)
+		self.direction = dir
+	end
 	function Pawn:update(dt)
 		self:doVelocity(dt)
 		self:doGravity(dt)
@@ -311,9 +318,11 @@ function love.load()
 		local vx, vy = self:getVel()
 		if love.keyboard.isDown("a") then
 			vx = vx - 500 * dt
+			self:setDirection(LEFT)
 		end
 		if love.keyboard.isDown("d") then
 			vx = vx + 500 * dt
+			self:setDirection(RIGHT)
 		end
 		self:setVel(vx, vy)
 	end
@@ -350,7 +359,8 @@ function love.load()
 		local w, h = self:getSize()
 		local img = self:getSprites()[self:getImage()]
 		local iw, ih = img:getDimensions()
-		love.graphics.draw(img, -iw/2, ih - h/2, 0, 1, -1)
+		local dir = self:getDirection() == LEFT and 1 or -1
+		love.graphics.draw(img, -iw/2 * dir, ih - h/2, 0, dir, -1)
 	end
 	function ImgPawn:init()
 		self:setColor(255, 255, 255, 255)
