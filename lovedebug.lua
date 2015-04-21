@@ -536,7 +536,7 @@ _G["love"].run = function()
 		end
 		
 		if love.update and not _Debug.drawOverlay then
-			if _DebugSettings.LiveAuto and _Debug.liveLastModified < love.filesystem.getLastModified(_DebugSettings.LiveFile) then
+			if _DebugSettings.LiveAuto and _Debug.liveLastModified < (love.filesystem.getLastModified(_DebugSettings.LiveFile) or 0) then
 				_Debug.liveLastModified = _DebugSettings.LiveAuto and love.filesystem.getLastModified(_DebugSettings.LiveFile) or 0
 				_Debug.hotSwapUpdate(dt) 
 			else
