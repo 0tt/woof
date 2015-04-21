@@ -1,6 +1,20 @@
 require("util")
 require("lovedebug")
 function love.load()
+	img = {}
+	function loadSprites(name)
+		if not love.filesystem.exists("img/" .. name .. "1.png") then error("Invalid sprite name!") end
+		local num = 1
+		img[name] = {}
+		while love.filesystem.exists("img/" .. name .. num .. ".png") do
+			img[name][num] = love.graphics.newImage("img/" .. name .. num .. ".png")
+			num = num + 1
+		end
+		return img[name]
+	end
+	loadSprites("pug")
+	loadSprites("lab")
+	
 	ents = {}
 	colliders = {}
 	love.window.setMode(800, 600, {
@@ -16,10 +30,13 @@ function love.load()
 		return (x1 + x2) / 2, (y1 + y2) / 2
 	end
 
+
 	World = {
 		gx = 0,
 		gy = 500,
 	}
+	
+	
 	Entity = {
 		class = "Entity",
 		x = 0,
@@ -120,6 +137,7 @@ function love.load()
 		table.remove(ents, self.id)
 		print("removed", self.id)
 	end
+	
 	
 	Phys = Entity:new{
 		class = "Phys",
@@ -228,11 +246,12 @@ function love.load()
 			self:doFriction(dt)
 		end
 	end
+	
 
-	Player = Phys:new{
-		class = "Player",
+	Pawn = Phys:new{
+		class = "Pawn",
 	}
-	function Player:update(dt)
+	function Pawn:update(dt)
 		self:doVelocity(dt)
 		self:doGravity(dt)
 		onground = false
@@ -249,14 +268,56 @@ function love.load()
 		end
 		self:setVel(vx, vy)
 	end
-	Player:setSize(32, 64)
-	Player:setBounciness(0.1)
-	Player:spawn()
+	Pawn:setSize(32, 64)
+	Pawn:setBounciness(0.1)
+	
+	
+	ImgPawn = Pawn:new{
+		class = "Pawn",
+		sprites = {},
+		img = 1,
+	}
+	function ImgPawn:getSprites()
+		return self.sprites
+	end
+	function ImgPawn:setSprites(s)
+		local tab = img[s]
+		if  not tab then
+			tab = loadSprites(s)
+		end
+		self.sprites = tab
+	end
+	function ImgPawn:getImage()
+		return self.img
+	end
+	function ImgPawn:setImage(i)
+		self.img = i
+	end
+	function ImgPawn:spawn(s)
+		Entity.spawn(self)
+		self:setSprites(s)
+	end
+	function ImgPawn:draw()
+		local w, h = self:getSize()
+		local img = self:getSprites()[self:getImage()]
+		local iw, ih = img:getDimensions()
+		love.graphics.draw(img, -iw/2, ih - h/2, 0, 1, -1)
+	end
+	function ImgPawn:init()
+		self:setColor(255, 255, 255, 255)
+		self:setSize(64, 64) 
+	end
+	
+	
+	Player = ImgPawn:new()
+	Player:spawn("pug")
+	
 
 	Ground = Entity:new()
 	Ground:setSize(1024, 32)
 	Ground:setPos(0, -256)
 	Ground:spawn()
+	
 	
 	Ghost = Entity:new()
 	Ghost:setSize(32, 32)
@@ -269,6 +330,7 @@ function love.load()
 	end
 	Ghost:setColor(0, 0, 0, 128)
 	Ghost:spawn()
+
 
 	love.graphics.setBackgroundColor(255, 255, 255)
 end
