@@ -37,7 +37,11 @@ function love.load()
 		return (x1 + x2) / 2, (y1 + y2) / 2
 	end
 
-
+	LEFT = 1
+	RIGHT = 2
+	TOP, UP = 3, 3
+	BOTTOM, DOWN = 4, 4
+	
 	World = {
 		gx = 0,
 		gy = 500,
@@ -211,10 +215,10 @@ function love.load()
 					local top = 	(y + h / 2) - (oy + oh / 2) - h / 2
 					
 					local objedges = {
-						{key = "right", val = right, pos = (ox + ow / 2) + w / 2, obj = obj}, 
-						{key = "left", val = left, pos = (ox - ow / 2) - w / 2, obj = obj}, 
-						{key = "bottom", val = bottom, pos = (oy - oh / 2) - h / 2, obj = obj}, 
-						{key = "top", val = top, pos = (oy + oh / 2) + h / 2, obj = obj}
+						{key = RIGHT, val = right, pos = (ox + ow / 2) + w / 2, obj = obj}, 
+						{key = LEFT, val = left, pos = (ox - ow / 2) - w / 2, obj = obj}, 
+						{key = BOTTOM, val = bottom, pos = (oy - oh / 2) - h / 2, obj = obj}, 
+						{key = TOP, val = top, pos = (oy + oh / 2) + h / 2, obj = obj}
 					}
 					for i = 1, #objedges do
 						if objedges[i].val > 0 then
@@ -266,7 +270,7 @@ function love.load()
 			end
 		end
 		for dir, e in pairs(max) do
-			if dir == "left" or dir == "right" then
+			if dir == LEFT or dir == RIGHT then
 				vx = -vx * (b + ob)
 				px = e.pos
 			else
