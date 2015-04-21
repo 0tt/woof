@@ -204,10 +204,10 @@ function love.load()
 					local top = 	(y + h / 2) - (oy + oh / 2) - h / 2
 					
 					local objedges = {
-						{key = "right", val = right, pos = (ox + ow / 2) + w / 2}, 
-						{key = "left", val = left, pos = (ox - ow / 2) - w / 2}, 
-						{key = "bottom", val = bottom, pos = (oy - oh / 2) - h / 2}, 
-						{key = "top", val = top, pos = (oy + oh / 2) + h / 2}
+						{key = "right", val = right, pos = (ox + ow / 2) + w / 2, obj = obj}, 
+						{key = "left", val = left, pos = (ox - ow / 2) - w / 2, obj = obj}, 
+						{key = "bottom", val = bottom, pos = (oy - oh / 2) - h / 2, obj = obj}, 
+						{key = "top", val = top, pos = (oy + oh / 2) + h / 2, obj = obj}
 					}
 					for i = 1, #objedges do
 						if objedges[i].val > 0 then
@@ -220,14 +220,52 @@ function love.load()
 		table.sort(edges, function(a, b)
 			return a.val > b.val
 		end)
-		local e = edges[1]
-		if not e then return end
-		if e.key == "left" or e.key == "right" then
-			vx = -vx * (b + ob)
-			px = e.pos
-		else
-			vy = -vy * (b + ob)
-			py = e.pos
+		--Okay so first we need to go through all of the edges.
+		--We'll make sure that only an object's greatest edges is included.
+		local objs = {}
+		for _, e in ipairs(edges) do
+			if objs[e.obj] then
+				if e.val > objs[e.obj].val then
+					objs[e.obj] = e
+				end
+			else
+				objs[e.obj] = e
+			end
+		end
+		--Then we re-add to the edge list, this time making sure the greatest directions are included.
+		local max = {
+			top,
+			bottom,
+			left,
+			right,
+		}
+		for obj, e in pairs(objs) do
+			if max[e.key] then
+				if max[e.key].val > e.val then
+					max[e.key] = e
+				end
+			else
+				max[e.key] = e
+			end
+		end
+		--Finally, we have 1 object per edge, and one direction per edge.
+		for dir, e in pairs(max) do
+			for dir2, e2 in pairs(max) do
+				if e.obj == e2.obj then
+					if e.val > e2.val then
+
+					end
+				end
+			end
+		end
+		for dir, e in pairs(max) do
+			if dir == "left" or dir == "right" then
+				vx = -vx * (b + ob)
+				px = e.pos
+			else
+				vy = -vy * (b + ob)
+				py = e.pos
+			end
 		end
 		self:setPos(px, py)
 		self:setVel(vx, vy)
