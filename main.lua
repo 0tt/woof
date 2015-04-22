@@ -31,10 +31,13 @@ function love.load()
 	WIDTH, HEIGHT = love.window.getDimensions()
 
 	function screenToWorld(x, y)
-		return x - WIDTH / 2, -(y - HEIGHT / 2)
+		return x - WIDTH / 2 - Camera.x * Camera.sx, -(y - HEIGHT / 2) - Camera.y * Camera.sy
 	end
 	function center(x1, y1, x2, y2)
 		return (x1 + x2) / 2, (y1 + y2) / 2
+	end
+	function distance(x1, y1, x2, y2)
+		return math.sqrt((y2 - y1)^2 + (x2 - x1)^2)
 	end
 
 	LEFT = 1
@@ -47,6 +50,13 @@ function love.load()
 		gy = 500,
 	}
 	
+	Camera = {
+		x = 0,
+		y = 0,
+		sx = 1,
+		sy = 1,
+		r = 0,
+	}
 	
 	Entity = {
 		class = "Entity",
@@ -350,6 +360,11 @@ function love.load()
 		else
 			self:setVel(vx, vy)
 		end
+		Camera.x, Camera.y = self:getPos()
+		Camera.x, Camera.y = -Camera.x, -Camera.y
+		Camera.y = Camera.y - HEIGHT / 8
+		--Camera.sx = 1 - (distance(0, 0, self:getVel()) / self:getSpeed()) * 0.1
+		--Camera.sy = 1 - (distance(0, 0, self:getVel()) / self:getSpeed()) * 0.1
 	end
 	Pawn:setSize(32, 64)
 	Pawn:setBounciness(0.1)
@@ -434,14 +449,19 @@ function love.draw()
 	love.graphics.push()
 		love.graphics.translate(WIDTH / 2, HEIGHT / 2)
 		love.graphics.scale(1, -1)
-		for k, v in ipairs(ents) do
-			love.graphics.push()
-				love.graphics.translate(v:getPos())
-				love.graphics.rotate(v:getRotation())
-				love.graphics.setColor(v:getColor())
-				v:draw()
-			love.graphics.pop()
-		end
+		love.graphics.push()
+			love.graphics.translate(Camera.x, Camera.y)
+			love.graphics.scale(Camera.sx, Camera.sy)
+			love.graphics.rotate(Camera.r)
+			for k, v in ipairs(ents) do
+				love.graphics.push()
+					love.graphics.translate(v:getPos())
+					love.graphics.rotate(v:getRotation())
+					love.graphics.setColor(v:getColor())
+					v:draw()
+				love.graphics.pop()
+			end
+		love.graphics.pop()
 	love.graphics.pop()
 	if not focused then
 		love.graphics.setColor(0, 0, 0, 255)
