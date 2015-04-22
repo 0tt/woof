@@ -301,6 +301,7 @@ function love.load()
 		onground = false,
 		acceleration = 1000,
 		speed = 250,
+		jump = 260,
 	}
 	function Pawn:getDirection()
 		return self.direction
@@ -322,6 +323,12 @@ function love.load()
 	end
 	function Pawn:setSpeed(s)
 		self.speed = s
+	end
+	function Pawn:getJump()
+		return self.jump
+	end
+	function Pawn:setJump(j)
+		self.jump = j
 	end
 	function Pawn:update(dt)
 		self:doVelocity(dt)
@@ -353,6 +360,9 @@ function love.load()
 		if love.keyboard.isDown("d") then
 			vx = vx + a * dt
 			self:setDirection(RIGHT)
+		end
+		if love.keyboard.isDown(" ") and self:isOnGround() then
+			vy = vy + self:getJump()
 		end
 		if vx ~= 0 then
 			local ax = math.abs(vx) / vx
@@ -478,11 +488,6 @@ function love.update(dt)
 	end
 end
 function love.keypressed(key)
-	if key == " " then
-		local vx, vy = Player:getVel()
-		vy = vy + 200
-		Player:setVel(vx, vy)
-	end
 	if key == "r" then
 		Player:setPos(0, 0)
 		Player:setVel(0, 0)
