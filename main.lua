@@ -117,7 +117,7 @@ function love.load()
 		if  x + w / 2 >= ox - ow / 2 --right edge > left edge
 		and x - w / 2 <= ox + ow / 2 --left edge < right edge
 		and y + h / 2 >= oy - oh / 2 --top edge > bottom edge
-		and y - h / 2 <= oy + oh / 2 --bottom edge < top edge
+		and y - h / 2 -1 <= oy + oh / 2 --bottom edge < top edge
 		then
 			return true
 		end
@@ -303,6 +303,7 @@ function love.load()
 		self:doVelocity(dt)
 		self:doGravity(dt)
 		local hit, es = self:doCollision(dt)
+		self.onground = false
 		if hit then
 			for _, e in pairs(es) do
 				if e.key == BOTTOM then
@@ -310,8 +311,14 @@ function love.load()
 					self.onground = true
 				end
 			end
-		else
-			self.onground = false
+			if not self:isOnGround() then
+				for _, e in pairs(es) do
+					if e.key == TOP then
+						local x, y = self:getPos()
+						self:setPos(x, y - 1)
+					end
+				end
+			end
 		end
 		local vx, vy = self:getVel()
 		if love.keyboard.isDown("a") then
@@ -402,6 +409,7 @@ function love.draw()
 	love.graphics.setFont(fonts.text)
 	love.graphics.setColor(0, 0, 0, 255)
 	love.graphics.print(table.concat({round(Player:getPos())}, ", "), 0, 0)
+	love.graphics.print(tostring(Player:isOnGround()), 0, 12)
 	love.graphics.push()
 		love.graphics.translate(WIDTH / 2, HEIGHT / 2)
 		love.graphics.scale(1, -1)
