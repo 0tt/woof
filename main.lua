@@ -155,7 +155,7 @@ function love.load()
 		vx = 0,
 		vy = 0,
 		bounciness = 1,
-		friction = 0,
+		friction = 25,
 	}
 	function Phys:getVel()
 		return self.vx, self.vy
@@ -202,7 +202,7 @@ function love.load()
 		local b = self:getBounciness()
 		local ob = 0
 		local changed = false
-		edges = {}
+		local edges = {}
 		for id, obj in pairs(colliders) do
 			if obj ~= self then
 				if self:isTouching(obj) then
@@ -215,10 +215,10 @@ function love.load()
 					local top = 	(y + h / 2) - (oy + oh / 2) - h / 2
 					
 					local objedges = {
-						{key = RIGHT, val = right, pos = (ox + ow / 2) + w / 2, obj = obj}, 
-						{key = LEFT, val = left, pos = (ox - ow / 2) - w / 2, obj = obj}, 
-						{key = BOTTOM, val = bottom, pos = (oy - oh / 2) - h / 2, obj = obj}, 
-						{key = TOP, val = top, pos = (oy + oh / 2) + h / 2, obj = obj}
+						{key = LEFT, val = right, pos = (ox + ow / 2) + w / 2, obj = obj}, 
+						{key = RIGHT, val = left, pos = (ox - ow / 2) - w / 2, obj = obj}, 
+						{key = TOP, val = bottom, pos = (oy - oh / 2) - h / 2, obj = obj}, 
+						{key = BOTTOM, val = top, pos = (oy + oh / 2) + h / 2, obj = obj}
 					}
 					for i = 1, #objedges do
 						if objedges[i].val > 0 then
@@ -244,12 +244,7 @@ function love.load()
 			end
 		end
 		--Then we re-add to the edge list, this time making sure the greatest directions are included.
-		local max = {
-			top,
-			bottom,
-			left,
-			right,
-		}
+		local max = {}
 		for obj, e in pairs(objs) do
 			if max[e.key] then
 				if max[e.key].val > e.val then
@@ -261,26 +256,19 @@ function love.load()
 		end
 		--Finally, we have 1 object per edge, and one direction per edge.
 		for dir, e in pairs(max) do
-			for dir2, e2 in pairs(max) do
-				if e.obj == e2.obj then
-					if e.val > e2.val then
-
-					end
-				end
-			end
-		end
-		for dir, e in pairs(max) do
 			if dir == LEFT or dir == RIGHT then
 				vx = -vx * (b + ob)
 				px = e.pos
+				changed = true
 			else
 				vy = -vy * (b + ob)
 				py = e.pos
+				changed = true
 			end
 		end
 		self:setPos(px, py)
 		self:setVel(vx, vy)
-		return changed
+		return changed, max
 	end
 	function Phys:doGravity(dt)
 		local vx, vy = self:getVel()
@@ -300,6 +288,7 @@ function love.load()
 	Pawn = Phys:new{
 		class = "Pawn",
 		direction = LEFT,
+		onground = false,
 	}
 	function Pawn:getDirection()
 		return self.direction
@@ -307,13 +296,22 @@ function love.load()
 	function Pawn:setDirection(dir)
 		self.direction = dir
 	end
+	function Pawn:isOnGround()
+		return self.onground
+	end
 	function Pawn:update(dt)
 		self:doVelocity(dt)
 		self:doGravity(dt)
-		onground = false
-		if self:doCollision(dt) then
-			self:doFriction(dt)
-			onground = true
+		local hit, es = self:doCollision(dt)
+		if hit then
+			for _, e in pairs(es) do
+				if e.key == BOTTOM then
+					self:doFriction(dt)
+					self.onground = true
+				end
+			end
+		else
+			self.onground = false
 		end
 		local vx, vy = self:getVel()
 		if love.keyboard.isDown("a") then
