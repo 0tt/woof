@@ -289,6 +289,8 @@ function love.load()
 		class = "Pawn",
 		direction = LEFT,
 		onground = false,
+		acceleration = 1000,
+		speed = 250,
 	}
 	function Pawn:getDirection()
 		return self.direction
@@ -298,6 +300,18 @@ function love.load()
 	end
 	function Pawn:isOnGround()
 		return self.onground
+	end
+	function Pawn:getAcceleration()
+		return self.acceleration
+	end
+	function Pawn:setAcceleration(a)
+		self.acceleration = a
+	end
+	function Pawn:getSpeed()
+		return self.speed
+	end
+	function Pawn:setSpeed(s)
+		self.speed = s
 	end
 	function Pawn:update(dt)
 		self:doVelocity(dt)
@@ -321,15 +335,21 @@ function love.load()
 			end
 		end
 		local vx, vy = self:getVel()
+		local a = self:getAcceleration()
 		if love.keyboard.isDown("a") then
-			vx = vx - 500 * dt
+			vx = vx - a * dt
 			self:setDirection(LEFT)
 		end
 		if love.keyboard.isDown("d") then
-			vx = vx + 500 * dt
+			vx = vx + a * dt
 			self:setDirection(RIGHT)
 		end
-		self:setVel(vx, vy)
+		if vx ~= 0 then
+			local ax = math.abs(vx) / vx
+			self:setVel(math.min(math.abs(vx), self:getSpeed()) * ax, vy)
+		else
+			self:setVel(vx, vy)
+		end
 	end
 	Pawn:setSize(32, 64)
 	Pawn:setBounciness(0.1)
@@ -409,7 +429,8 @@ function love.draw()
 	love.graphics.setFont(fonts.text)
 	love.graphics.setColor(0, 0, 0, 255)
 	love.graphics.print(table.concat({round(Player:getPos())}, ", "), 0, 0)
-	love.graphics.print(tostring(Player:isOnGround()), 0, 12)
+	love.graphics.print(table.concat({round(Player:getVel())}, ", "), 0, 12)
+	love.graphics.print(tostring(Player:isOnGround()), 0, 24)
 	love.graphics.push()
 		love.graphics.translate(WIDTH / 2, HEIGHT / 2)
 		love.graphics.scale(1, -1)
