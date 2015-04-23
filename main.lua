@@ -33,7 +33,7 @@ function love.load()
 	
 	ents = {}
 	colliders = {}
-	
+	draw = {}
 
 	function screenToWorld(x, y)
 		return x - WIDTH / 2 - Camera.x * Camera.sx, -(y - HEIGHT / 2) - Camera.y * Camera.sy
@@ -74,6 +74,7 @@ function love.load()
 		cb = 0,
 		ca = 255,
 		id = 0,
+		layer = 10,
 		rotation = 0,
 		collide = true,
 	}
@@ -138,7 +139,7 @@ function love.load()
 		end
 		return false 
 	end
-	function Entity:spawn()
+	function Entity:spawn(layer)
 		local id = #ents + 1
 		ents[id] = self
 		local w, h = self:getSize()
@@ -146,7 +147,10 @@ function love.load()
 			colliders[id] = self
 		end
 		self.id = id
+		self.layer = layer
 		self:init(id)
+		draw[#draw + 1] = self
+		reorder = true
 	end
 	function Entity:init(id)
 
@@ -162,6 +166,13 @@ function love.load()
 		colliders[self.id] = nil
 		table.remove(ents, self.id)
 		print("removed", self.id)
+		for k, v in pairs(draw) do
+			if v == self then
+				table.remove(draw, k)
+				break
+			end
+		end
+		reorder = true
 	end
 	
 	
@@ -307,6 +318,7 @@ function love.load()
 		acceleration = 1000,
 		speed = 250,
 		jump = 260,
+		layer = 5,
 	}
 	function Pawn:getDirection()
 		return self.direction
@@ -405,10 +417,6 @@ function love.load()
 	function ImgPawn:setImage(i)
 		self.img = i
 	end
-	function ImgPawn:spawn(s)
-		Entity.spawn(self)
-		self:setSprites(s)
-	end
 	function ImgPawn:draw()
 		local w, h = self:getSize()
 		local img = self:getSprites()[self:getImage()]
@@ -423,7 +431,8 @@ function love.load()
 	
 	
 	Player = ImgPawn:new()
-	Player:spawn("pug")
+	Player:setSprites("pug")
+	Player:spawn()
 	
 
 	Ground = Entity:new()
@@ -455,6 +464,16 @@ local function round(...)
 	return unpack(args)
 end
 function love.draw()
+	if reorder then
+		print("re-sorting")
+		table.sort(draw, function(a, b)
+			if a.layer == b.layer then
+				return a.id > b.id
+			end
+			return a.layer > b.layer
+		end)
+		reorder = false
+	end
 	love.graphics.setColor(255, 255, 255, 255)
 	love.graphics.draw(trees, treesq, 0, 0)
 	love.graphics.draw(grass, grassq, 0, HEIGHT - 300)
@@ -470,7 +489,7 @@ function love.draw()
 			love.graphics.translate(Camera.x, Camera.y)
 			love.graphics.scale(Camera.sx, Camera.sy)
 			love.graphics.rotate(Camera.r)
-			for k, v in ipairs(ents) do
+			for k, v in ipairs(draw) do
 				love.graphics.push()
 					love.graphics.translate(v:getPos())
 					love.graphics.rotate(v:getRotation())
