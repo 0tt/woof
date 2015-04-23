@@ -1,6 +1,9 @@
 require("util")
 require("lovedebug")
 function love.load()
+	love.window.setMode(1280, 720)
+	love.window.setTitle("woof (the vidya)")
+	WIDTH, HEIGHT = love.window.getDimensions()
 	img = {}
 	function loadSprites(name)
 		if not love.filesystem.exists("img/" .. name .. "1.png") then error("Invalid sprite name!") end
@@ -15,6 +18,10 @@ function love.load()
 	loadSprites("pug")
 	loadSprites("lab")
 	
+	grass = love.graphics.newImage("img/grass.png")
+	grass:setWrap("repeat")
+	grassq = love.graphics.newQuad(0, HEIGHT - grass:getHeight(), WIDTH, grass:getHeight(), grass:getDimensions())
+	
 	fonts = {}
 	fonts.banner = love.graphics.newFont(60)
 	fonts.text = love.graphics.newFont(12)
@@ -24,11 +31,6 @@ function love.load()
 	ents = {}
 	colliders = {}
 	
-	love.window.setMode(800, 600, {
-		fullscreen = true,
-		fullscreentype = "desktop",
-	})
-	WIDTH, HEIGHT = love.window.getDimensions()
 
 	function screenToWorld(x, y)
 		return x - WIDTH / 2 - Camera.x * Camera.sx, -(y - HEIGHT / 2) - Camera.y * Camera.sy
@@ -370,9 +372,8 @@ function love.load()
 		else
 			self:setVel(vx, vy)
 		end
-		Camera.x, Camera.y = self:getPos()
-		Camera.x, Camera.y = -Camera.x, -Camera.y
-		Camera.y = Camera.y - HEIGHT / 8
+		Camera.x = self:getPos()
+		Camera.x = -Camera.x
 		--Camera.sx = 1 - (distance(0, 0, self:getVel()) / self:getSpeed()) * 0.1
 		--Camera.sy = 1 - (distance(0, 0, self:getVel()) / self:getSpeed()) * 0.1
 	end
@@ -451,6 +452,8 @@ local function round(...)
 	return unpack(args)
 end
 function love.draw()
+	love.graphics.setColor(255, 255, 255, 255)
+	love.graphics.draw(grass, grassq, 0, HEIGHT - 300)
 	love.graphics.setFont(fonts.text)
 	love.graphics.setColor(0, 0, 0, 255)
 	love.graphics.print(table.concat({round(Player:getPos())}, ", "), 0, 0)
@@ -486,6 +489,7 @@ function love.update(dt)
 	for k, v in ipairs(ents) do
 		v:update(dt)
 	end
+	grassq:setViewport(-Camera.x, HEIGHT - grass:getHeight(), WIDTH, grass:getHeight())
 end
 function love.keypressed(key)
 	if key == "r" then
