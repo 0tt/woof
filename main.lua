@@ -21,6 +21,9 @@ function love.load()
 	grass = love.graphics.newImage("img/grass.png")
 	grass:setWrap("repeat")
 	grassq = love.graphics.newQuad(0, HEIGHT - grass:getHeight(), WIDTH, grass:getHeight(), grass:getDimensions())
+	trees = love.graphics.newImage("img/trees.png")
+	trees:setWrap("repeat", "clamp")
+	treesq = love.graphics.newQuad(0, 0, WIDTH, HEIGHT, trees:getDimensions())
 	
 	fonts = {}
 	fonts.banner = love.graphics.newFont(60)
@@ -453,6 +456,7 @@ local function round(...)
 end
 function love.draw()
 	love.graphics.setColor(255, 255, 255, 255)
+	love.graphics.draw(trees, treesq, 0, 0)
 	love.graphics.draw(grass, grassq, 0, HEIGHT - 300)
 	love.graphics.setFont(fonts.text)
 	love.graphics.setColor(0, 0, 0, 255)
@@ -489,7 +493,8 @@ function love.update(dt)
 	for k, v in ipairs(ents) do
 		v:update(dt)
 	end
-	grassq:setViewport(-Camera.x, HEIGHT - grass:getHeight(), WIDTH, grass:getHeight())
+	treesq:setViewport(-Camera.x * 0.8, 0, WIDTH, HEIGHT)
+	grassq:setViewport(-Camera.x * 0.95, HEIGHT - grass:getHeight(), WIDTH, grass:getHeight())
 end
 function love.keypressed(key)
 	if key == "r" then
