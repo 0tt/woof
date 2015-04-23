@@ -1,3 +1,4 @@
+![Screenshot](http://i.imgur.com/wMUKwdc.png)
 # To Play
 1. Get LÖVE at [love2d.org](https://www.love2d.org/).
 2. Click "Download ZIP" in the lower right corner.
