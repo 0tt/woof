@@ -367,6 +367,21 @@ function love.load()
 		self.img = i
 	end
 	function Pawn:update(dt)
+		self.imgtimer = self.imgtimer + dt
+		if self.imgtimer > 0.25 then
+			if self:getImage() <= 2 then
+				if math.abs(self:getVel()) > 50 then
+					self.imgtimer = 0
+					if self:getImage() == 1 then
+						self:setImage(2)
+					else
+						self:setImage(1)
+					end
+				else
+					self:setImage(1)
+				end
+			end
+		end 
 		self:doVelocity(dt)
 		self:doGravity(dt)
 		local hit, es = self:doCollision(dt)
