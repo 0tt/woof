@@ -36,3 +36,16 @@ function table.print(t)
 	print("Table:")
 	pt(t, 1)
 end
+
+function screenToWorld(x, y)
+	return x - WIDTH / 2 - Camera.x * Camera.sx, -(y - HEIGHT / 2) - Camera.y * Camera.sy
+end
+function center(x1, y1, x2, y2)
+	return (x1 + x2) / 2, (y1 + y2) / 2
+end
+function distance(x1, y1, x2, y2)
+	return math.sqrt((y2 - y1)^2 + (x2 - x1)^2)
+end
+function lerp(from, to, t)
+	return from + (t * (to - from))
+end
