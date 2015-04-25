@@ -411,8 +411,7 @@ function love.load()
 		else
 			self:setVel(vx, vy)
 		end
-		Camera.x = self:getPos()
-		Camera.x = -Camera.x
+		Camera.x = lerp(Camera.x, -self:getPos(), 0.1)
 		--Camera.sx = 1 - (distance(0, 0, self:getVel()) / self:getSpeed()) * 0.1
 		--Camera.sy = 1 - (distance(0, 0, self:getVel()) / self:getSpeed()) * 0.1
 	end
