@@ -312,6 +312,8 @@ function love.load()
 		sprites = {},
 		img = 1,
 		imgtimer = 0,
+		crouched = false,
+		crouchdir = LEFT,
 	}
 	function Pawn:getDirection()
 		return self.direction
@@ -359,7 +361,7 @@ function love.load()
 	function Pawn:update(dt)
 		self.imgtimer = self.imgtimer + dt
 		if self.imgtimer > 0.25 then
-			if self:getImage() <= 2 then
+			if self:getImage() <= 2 and not self.crouched and self:isOnGround() then
 				if math.abs(self:getVel()) > 50 then
 					self.imgtimer = 0
 					if self:getImage() == 1 then
@@ -372,6 +374,9 @@ function love.load()
 				end
 			end
 		end 
+		if not self:isOnGround() then
+			self:setImage(2)
+		end
 		self:doVelocity(dt)
 		self:doGravity(dt)
 		local hit, es = self:doCollision(dt)
@@ -392,24 +397,41 @@ function love.load()
 				end
 			end
 		end
-		local vx, vy = self:getVel()
-		local a = self:getAcceleration()
-		if love.keyboard.isDown("a") then
-			vx = vx - a * dt
-			self:setDirection(LEFT)
-		end
-		if love.keyboard.isDown("d") then
-			vx = vx + a * dt
-			self:setDirection(RIGHT)
-		end
-		if love.keyboard.isDown(" ") and self:isOnGround() then
-			vy = vy + self:getJump()
-		end
-		if vx ~= 0 then
-			local ax = math.abs(vx) / vx
-			self:setVel(math.min(math.abs(vx), self:getSpeed()) * ax, vy)
+		if love.keyboard.isDown("lctrl") then
+			if not self.crouched then
+				self.crouched = true
+				self:setImage(4)
+				self.crouchdir = self:getDirection()
+			end
+			if (love.keyboard.isDown("a") and self.crouchdir ~= LEFT) or (love.keyboard.isDown("d") and self.crouchdir ~= RIGHT) then
+				self:setImage(6)
+			else
+				self:setImage(4)
+			end
 		else
-			self:setVel(vx, vy)
+			if self.crouched then
+				self:setImage(1)
+				self.crouched = false
+			end
+			local vx, vy = self:getVel()
+			local a = self:getAcceleration()
+			if love.keyboard.isDown("a") then
+				vx = vx - a * dt
+				self:setDirection(LEFT)
+			end
+			if love.keyboard.isDown("d") then
+				vx = vx + a * dt
+				self:setDirection(RIGHT)
+			end
+			if love.keyboard.isDown(" ") and self:isOnGround() then
+				vy = vy + self:getJump()
+			end
+			if vx ~= 0 then
+				local ax = math.abs(vx) / vx
+				self:setVel(math.min(math.abs(vx), self:getSpeed()) * ax, vy)
+			else
+				self:setVel(vx, vy)
+			end
 		end
 		Camera.x = lerp(Camera.x, -self:getPos(), 0.1)
 		--Camera.sx = 1 - (distance(0, 0, self:getVel()) / self:getSpeed()) * 0.1
