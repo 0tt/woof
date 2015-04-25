@@ -319,6 +319,9 @@ function love.load()
 		speed = 250,
 		jump = 260,
 		layer = 5,
+		sprites = {},
+		img = 1,
+		imgtimer = 0,
 	}
 	function Pawn:getDirection()
 		return self.direction
@@ -346,6 +349,22 @@ function love.load()
 	end
 	function Pawn:setJump(j)
 		self.jump = j
+	end
+	function Pawn:getSprites()
+		return self.sprites
+	end
+	function Pawn:setSprites(s)
+		local tab = img[s]
+		if  not tab then
+			tab = loadSprites(s)
+		end
+		self.sprites = tab
+	end
+	function Pawn:getImage()
+		return self.img
+	end
+	function Pawn:setImage(i)
+		self.img = i
 	end
 	function Pawn:update(dt)
 		self:doVelocity(dt)
@@ -392,45 +411,22 @@ function love.load()
 		--Camera.sx = 1 - (distance(0, 0, self:getVel()) / self:getSpeed()) * 0.1
 		--Camera.sy = 1 - (distance(0, 0, self:getVel()) / self:getSpeed()) * 0.1
 	end
-	Pawn:setSize(32, 64)
-	Pawn:setBounciness(0.1)
-	
-	
-	ImgPawn = Pawn:new{
-		class = "Pawn",
-		sprites = {},
-		img = 1,
-	}
-	function ImgPawn:getSprites()
-		return self.sprites
-	end
-	function ImgPawn:setSprites(s)
-		local tab = img[s]
-		if  not tab then
-			tab = loadSprites(s)
-		end
-		self.sprites = tab
-	end
-	function ImgPawn:getImage()
-		return self.img
-	end
-	function ImgPawn:setImage(i)
-		self.img = i
-	end
-	function ImgPawn:draw()
+	function Pawn:draw()
 		local w, h = self:getSize()
 		local img = self:getSprites()[self:getImage()]
 		local iw, ih = img:getDimensions()
 		local dir = self:getDirection() == LEFT and 1 or -1
 		love.graphics.draw(img, -iw/2 * dir, ih - h/2, 0, dir, -1)
 	end
-	function ImgPawn:init()
+	function Pawn:init()
 		self:setColor(255, 255, 255, 255)
 		self:setSize(64, 64) 
 	end
+	Pawn:setSize(32, 64)
+	Pawn:setBounciness(0.1)
 	
 	
-	Player = ImgPawn:new()
+	Player = Pawn:new()
 	Player:setSprites("pug")
 	Player:spawn()
 	
