@@ -436,8 +436,9 @@ function love.load()
 	
 
 	Ground = Entity:new()
-	Ground:setSize(1024, 32)
-	Ground:setPos(0, -256)
+	Ground:setSize(64 * 1024, 128)
+	Ground:setPos(0, -256 - 64 - 24) 
+	Ground:setColor(0, 0, 0, 0)
 	Ground:spawn()
 	
 	
@@ -476,7 +477,7 @@ function love.draw()
 	end
 	love.graphics.setColor(255, 255, 255, 255)
 	love.graphics.draw(trees, treesq, 0, 0)
-	love.graphics.draw(grass, grassq, 0, HEIGHT - 300)
+	love.graphics.draw(grass, grassq, 0, HEIGHT - 256 + 16)
 	love.graphics.setFont(fonts.text)
 	love.graphics.setColor(0, 0, 0, 255)
 	love.graphics.print(table.concat({round(Player:getPos())}, ", "), 0, 0)
@@ -513,7 +514,7 @@ function love.update(dt)
 		v:update(dt)
 	end
 	treesq:setViewport(-Camera.x * 0.8, 0, WIDTH, HEIGHT)
-	grassq:setViewport(-Camera.x * 0.95, HEIGHT - grass:getHeight(), WIDTH, grass:getHeight())
+	grassq:setViewport(-Camera.x, HEIGHT - grass:getHeight(), WIDTH, grass:getHeight())
 end
 function love.keypressed(key)
 	if key == "r" then
