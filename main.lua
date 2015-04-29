@@ -18,13 +18,25 @@ function love.load()
 	loadSprites("pug")
 	loadSprites("lab")
 	
-	grass = love.graphics.newImage("img/grass.png")
-	grass:setWrap("repeat")
-	grassq = love.graphics.newQuad(0, HEIGHT - grass:getHeight(), WIDTH, grass:getHeight(), grass:getDimensions())
-	trees = love.graphics.newImage("img/trees.png")
-	trees:setWrap("repeat", "clamp")
-	treesq = love.graphics.newQuad(0, 0, WIDTH, HEIGHT, trees:getDimensions())
+	bg = {}
 	
+	function addBackground(img, p, w1, w2)
+		local t = {}
+		t.i = love.graphics.newImage(img)
+		t.i:setWrap(w1, w2)
+		t.q = love.graphics.newQuad(0, 0, WIDTH, HEIGHT, t.i:getDimensions())
+		t.p = p
+		bg[#bg + 1] = t
+	end
+	addBackground("img/forest/sky.png", 0.1, "repeat", "clamp")
+	addBackground("img/forest/trees3.png", 0.7, "repeat", "clamp")
+	addBackground("img/forest/trees2.png", 0.8, "repeat", "clamp")
+	addBackground("img/forest/trees1.png", 0.9, "repeat", "clamp")
+	bg[5] = {}
+	bg[5].i = love.graphics.newImage("img/forest/grass.png")
+	bg[5].i:setWrap("repeat")
+	bg[5].q = love.graphics.newQuad(0, HEIGHT - bg[5].i:getHeight(), WIDTH, bg[5].i:getHeight(), bg[5].i:getDimensions())
+	bg[5].p = 1
 	fonts = {}
 	fonts.banner = love.graphics.newFont(60)
 	fonts.text = love.graphics.newFont(12)
@@ -498,8 +510,12 @@ function love.draw()
 		reorder = false
 	end
 	love.graphics.setColor(255, 255, 255, 255)
-	love.graphics.draw(trees, treesq, 0, 0)
-	love.graphics.draw(grass, grassq, 0, HEIGHT - 256 + 16)
+	
+	for i = 1, #bg - 1 do
+		love.graphics.draw(bg[i].i, bg[i].q)
+	end
+	love.graphics.draw(bg[#bg].i, bg[#bg].q, 0, HEIGHT - 256 + 16)
+	
 	love.graphics.setFont(fonts.text)
 	love.graphics.setColor(0, 0, 0, 255)
 	love.graphics.print(table.concat({round(Player:getPos())}, ", "), 0, 0)
@@ -535,8 +551,10 @@ function love.update(dt)
 	for k, v in ipairs(ents) do
 		v:update(dt)
 	end
-	treesq:setViewport(-Camera.x * 0.8, 0, WIDTH, HEIGHT)
-	grassq:setViewport(-Camera.x, HEIGHT - grass:getHeight(), WIDTH, grass:getHeight())
+	for i = 1, #bg - 1 do
+		bg[i].q:setViewport(-Camera.x * bg[i].p, 0, WIDTH, HEIGHT)
+	end
+	bg[#bg].q:setViewport(-Camera.x, HEIGHT - bg[#bg].i:getHeight(), WIDTH, bg[#bg].i:getHeight())
 end
 function love.keypressed(key)
 	if key == "r" then
