@@ -6,17 +6,15 @@ function love.load()
 	WIDTH, HEIGHT = love.window.getDimensions()
 	img = {}
 	function loadSprites(name)
-		if not love.filesystem.exists("img/" .. name .. "1.png") then error("Invalid sprite name!") end
-		local num = 1
+		if img[name] then return img[name] end
+		if not love.filesystem.exists("img/" .. name) then error("Invalid sprite folder!") end
 		img[name] = {}
-		while love.filesystem.exists("img/" .. name .. num .. ".png") do
-			img[name][num] = love.graphics.newImage("img/" .. name .. num .. ".png")
-			num = num + 1
+		local files = love.filesystem.getDirectoryItems("img/" .. name)
+		for _, file in ipairs(files) do
+			img[name][file] = love.graphics.newImage("img/" .. name .. "/" .. file)
 		end
 		return img[name]
 	end
-	loadSprites("pug")
-	loadSprites("lab")
 	
 	bg = {}
 	
@@ -322,7 +320,7 @@ function love.load()
 		jump = 260,
 		layer = 5,
 		sprites = {},
-		img = 1,
+		img = "idle",
 		imgtimer = 0,
 		crouched = false,
 		crouchdir = LEFT,
@@ -373,21 +371,21 @@ function love.load()
 	function Pawn:update(dt)
 		self.imgtimer = self.imgtimer + dt
 		if self.imgtimer > 0.25 then
-			if self:getImage() <= 2 and not self.crouched and self:isOnGround() then
-				if math.abs(self:getVel()) > 50 then
+			if not self.crouched and self:isOnGround() then
+				if math.abs(self:getVel()) > 200 then
 					self.imgtimer = 0
-					if self:getImage() == 1 then
-						self:setImage(2)
+					if self:getImage() == "run1" then
+						self:setImage("run2")
 					else
-						self:setImage(1)
+						self:setImage("run1")
 					end
 				else
-					self:setImage(1)
+					self:setImage("idle")
 				end
 			end
 		end 
 		if not self:isOnGround() then
-			self:setImage(2)
+			self:setImage("jump")
 		end
 		self:doVelocity(dt)
 		self:doGravity(dt)
@@ -412,17 +410,17 @@ function love.load()
 		if love.keyboard.isDown("lctrl") then
 			if not self.crouched then
 				self.crouched = true
-				self:setImage(4)
+				self:setImage("crouch")
 				self.crouchdir = self:getDirection()
 			end
 			if (love.keyboard.isDown("a") and self.crouchdir ~= LEFT) or (love.keyboard.isDown("d") and self.crouchdir ~= RIGHT) then
-				self:setImage(6)
+				self:setImage("look")
 			else
-				self:setImage(4)
+				self:setImage("crouch")
 			end
 		else
 			if self.crouched then
-				self:setImage(1)
+				self:setImage("idle")
 				self.crouched = false
 			end
 			local vx, vy = self:getVel()
@@ -451,7 +449,7 @@ function love.load()
 	end
 	function Pawn:draw()
 		local w, h = self:getSize()
-		local img = self:getSprites()[self:getImage()]
+		local img = self:getSprites()[self:getImage() .. ".png"]
 		local iw, ih = img:getDimensions()
 		local dir = self:getDirection() == LEFT and 1 or -1
 		love.graphics.draw(img, -iw/2 * dir, ih - h/2, 0, dir, -1)
