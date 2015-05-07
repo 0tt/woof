@@ -11,7 +11,9 @@ function love.load()
 		img[name] = {}
 		local files = love.filesystem.getDirectoryItems("img/" .. name)
 		for _, file in ipairs(files) do
-			img[name][file] = love.graphics.newImage("img/" .. name .. "/" .. file)
+			if string.sub(file, -4, -1) == ".png" then
+				img[name][file] = love.graphics.newImage("img/" .. name .. "/" .. file)
+			end
 		end
 		return img[name]
 	end
