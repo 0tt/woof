@@ -312,47 +312,18 @@ function love.load()
 		end
 	end
 	
-
 	Pawn = Phys:new{
 		class = "Pawn",
 		direction = LEFT,
-		onground = false,
-		acceleration = 1000,
-		speed = 250,
-		jump = 260,
 		layer = 5,
 		sprites = {},
 		img = "idle",
-		imgtimer = 0,
-		crouched = false,
-		crouchdir = LEFT,
 	}
 	function Pawn:getDirection()
 		return self.direction
 	end
 	function Pawn:setDirection(dir)
 		self.direction = dir
-	end
-	function Pawn:isOnGround()
-		return self.onground
-	end
-	function Pawn:getAcceleration()
-		return self.acceleration
-	end
-	function Pawn:setAcceleration(a)
-		self.acceleration = a
-	end
-	function Pawn:getSpeed()
-		return self.speed
-	end
-	function Pawn:setSpeed(s)
-		self.speed = s
-	end
-	function Pawn:getJump()
-		return self.jump
-	end
-	function Pawn:setJump(j)
-		self.jump = j
 	end
 	function Pawn:getSprites()
 		return self.sprites
@@ -370,7 +341,52 @@ function love.load()
 	function Pawn:setImage(i)
 		self.img = i
 	end
-	function Pawn:update(dt)
+	function Pawn:draw()
+		local w, h = self:getSize()
+		local img = self:getSprites()[self:getImage() .. ".png"]
+		local iw, ih = img:getDimensions()
+		local dir = self:getDirection() == LEFT and 1 or -1
+		love.graphics.draw(img, -iw/2 * dir, ih - h/2, 0, dir, -1)
+	end
+	function Pawn:init()
+		self:setColor(255, 255, 255, 255)
+	end
+	Pawn:setSize(32, 64)
+	Pawn:setBounciness(0.1)
+	
+	
+	Player = Pawn:new{
+		class = "Player",
+		onground = false,
+		acceleration = 1000,
+		speed = 250,
+		jump = 260,
+		imgtimer = 0,
+		crouched = false,
+		crouchdir = LEFT,
+	}
+	function Player:isOnGround()
+		return self.onground
+	end
+	function Player:getAcceleration()
+		return self.acceleration
+	end
+	function Player:setAcceleration(a)
+		self.acceleration = a
+	end
+	function Player:getSpeed()
+		return self.speed
+	end
+	function Player:setSpeed(s)
+		self.speed = s
+	end
+	function Player:getJump()
+		return self.jump
+	end
+	function Player:setJump(j)
+		self.jump = j
+	end
+	function Player:update(dt)
 		self.imgtimer = self.imgtimer + dt
 		if self.imgtimer > 0.25 then
 			if not self.crouched and self:isOnGround() then
@@ -449,22 +465,6 @@ function love.load()
 		--Camera.sx = 1 - (distance(0, 0, self:getVel()) / self:getSpeed()) * 0.1
 		--Camera.sy = 1 - (distance(0, 0, self:getVel()) / self:getSpeed()) * 0.1
 	end
-	function Pawn:draw()
-		local w, h = self:getSize()
-		local img = self:getSprites()[self:getImage() .. ".png"]
-		local iw, ih = img:getDimensions()
-		local dir = self:getDirection() == LEFT and 1 or -1
-		love.graphics.draw(img, -iw/2 * dir, ih - h/2, 0, dir, -1)
-	end
-	function Pawn:init()
-		self:setColor(255, 255, 255, 255)
-		self:setSize(64, 64) 
-	end
-	Pawn:setSize(32, 64)
-	Pawn:setBounciness(0.1)
-	
-	
-	Player = Pawn:new()
 	Player:setSprites("pug")
 	Player:spawn()
 	
