@@ -466,6 +466,7 @@ function love.load()
 		--Camera.sy = 1 - (distance(0, 0, self:getVel()) / self:getSpeed()) * 0.1
 	end
 	Player:setSprites("pug")
+	Player:setSize(64, 64)
 	Player:spawn()
 	
 
