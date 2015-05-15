@@ -469,6 +469,12 @@ function love.load()
 	Player:spawn()
 	
 
+	Steak = Pawn:new()
+	Steak:setSprites("steak")
+	Steak:setSize(64, 56)
+	Steak:spawn()
+
+
 	Ground = Entity:new()
 	Ground:setSize(64 * 1024, 128)
 	Ground:setPos(0, -256 - 64 - 24) 
