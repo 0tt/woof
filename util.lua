@@ -1,11 +1,11 @@
 function table.exists(t, val)
-	assert(type(t)=="table", "wrong fucking type, asshole")
+	assert(type(t)=="table", "bad argument #1 to table.exists (table expected, got " .. type(t) .. ")")
 	for k, v in pairs(t) do
 		if v == val then return k, v end
 	end
 end
 function table.print(t)
-	assert(type(t)=="table", "wrong fucking type, dickhead (" .. type(t) .. ")")
+	assert(type(t)=="table", "bad argument #1 to table.print (table expected, got " .. type(t) .. ")")
 	local done = {t}
 	local ret = ""
 	local function pt(t, indent)
