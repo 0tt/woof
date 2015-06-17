@@ -1,9 +1,21 @@
 require("util")
 require("lovedebug")
-function love.load()
-	love.window.setMode(1280, 720)
+function love.load(a)
+	arg = a or arg
+	LEVELEDIT = false
+	if table.exists(arg or {}, "-edit") then
+		LEVELEDIT = true
+	end
+	EDITWIDTH = 64
+	WIDTH = 1280
+	HEIGHT = 720
+	if LEVELEDIT then
+		love.window.setMode(WIDTH + EDITWIDTH, HEIGHT)
+	else
+		love.window.setMode(WIDTH, HEIGHT)
+	end
 	love.window.setTitle("woof (the vidya)")
-	WIDTH, HEIGHT = love.window.getDimensions()
+	
 	img = {}
 	function loadSprites(name)
 		if img[name] then return img[name] end
@@ -41,7 +53,7 @@ function love.load()
 	fonts.banner = love.graphics.newFont(60)
 	fonts.text = love.graphics.newFont(12)
 	
-	focused = false
+	focused = LEVELEDIT
 	
 	ents = {}
 	colliders = {}
@@ -161,7 +173,10 @@ function love.load()
 		local w, h = self:getSize()
 		love.graphics.rectangle("fill", -w/2, -h/2, w, h)
 	end
-	function Entity:update(dt)
+	function Entity:think(dt) --For logic
+
+	end
+	function Entity:update(dt) --For stuff that will happen in the level editor`
 
 	end
 	function Entity:remove()
@@ -304,7 +319,7 @@ function love.load()
 		vy = vy - World.gy * dt
 		self:setVel(vx, vy)
 	end
-	function Phys:update(dt)
+	function Phys:think(dt)
 		self:doVelocity(dt)
 		self:doGravity(dt)
 		if self:doCollision(dt) then
@@ -386,7 +401,7 @@ function love.load()
 	function Player:setJump(j)
 		self.jump = j
 	end
-	function Player:update(dt)
+	function Player:think(dt)
 		self.imgtimer = self.imgtimer + dt
 		if self.imgtimer > 0.25 then
 			if not self.crouched and self:isOnGround() then
@@ -425,7 +440,7 @@ function love.load()
 				end
 			end
 		end
-		if love.keyboard.isDown("lctrl") then
+		if love.keyboard.isDown("s") then
 			if not self.crouched then
 				self.crouched = true
 				self:setImage("crouch")
@@ -451,7 +466,7 @@ function love.load()
 				vx = vx + a * dt
 				self:setDirection(RIGHT)
 			end
-			if love.keyboard.isDown(" ") and self:isOnGround() then
+			if love.keyboard.isDown("w") and self:isOnGround() then
 				vy = vy + self:getJump()
 			end
 			if vx ~= 0 then
@@ -481,22 +496,9 @@ function love.load()
 	Ground:setPos(0, -256 - 64 - 24) 
 	Ground:setColor(0, 0, 0, 0)
 	Ground:spawn()
-	
-	
-	Ghost = Entity:new()
-	Ghost:setSize(32, 32)
-	Ghost:setCollide(false)
-	function Ghost:update(dt)
-		local mx, my = screenToWorld(love.mouse.getPosition())
-		mx = mx + 16
-		my = my + 16
-		self:setPos((mx - mx % 32), (my - my % 32))
-	end
-	Ghost:setColor(0, 0, 0, 128)
-	Ghost:spawn()
 
 
-	love.graphics.setBackgroundColor(255, 255, 255)
+	gamecanvas = love.graphics.newCanvas(WIDTH, HEIGHT)
 end
 local function round(...)
 	local args = {...}
@@ -506,56 +508,62 @@ local function round(...)
 	return unpack(args)
 end
 function love.draw()
-	if reorder then
-		print("re-sorting")
-		table.sort(draw, function(a, b)
-			if a.layer == b.layer then
-				return a.id > b.id
-			end
-			return a.layer > b.layer
-		end)
-		reorder = false
-	end
-	love.graphics.setColor(255, 255, 255, 255)
-	
-	for i = 1, #bg - 1 do
-		love.graphics.draw(bg[i].i, bg[i].q)
-	end
-	love.graphics.draw(bg[#bg].i, bg[#bg].q, 0, HEIGHT - 256 + 16)
-	
-	love.graphics.setFont(fonts.text)
-	love.graphics.setColor(0, 0, 0, 255)
-	love.graphics.print(table.concat({round(Player:getPos())}, ", "), 0, 0)
-	love.graphics.print(table.concat({round(Player:getVel())}, ", "), 0, 12)
-	love.graphics.print(tostring(Player:isOnGround()), 0, 24)
-	love.graphics.push()
-		love.graphics.translate(WIDTH / 2, HEIGHT / 2)
-		love.graphics.scale(1, -1)
-		love.graphics.push()
-			love.graphics.translate(Camera.x, Camera.y)
-			love.graphics.scale(Camera.sx, Camera.sy)
-			love.graphics.rotate(Camera.r)
-			for k, v in ipairs(draw) do
-				love.graphics.push()
-					love.graphics.translate(v:getPos())
-					love.graphics.rotate(v:getRotation())
-					love.graphics.setColor(v:getColor())
-					v:draw()
-				love.graphics.pop()
-			end
-		love.graphics.pop()
-	love.graphics.pop()
-	if not focused then
-		love.graphics.setColor(0, 0, 0, 255)
-		love.graphics.setFont(fonts.banner)
-		love.graphics.rectangle("fill", 0, HEIGHT / 2 - 32, WIDTH, 64)
+	love.graphics.setCanvas(gamecanvas)
+		if reorder then
+			print("re-sorting")
+			table.sort(draw, function(a, b)
+				if a.layer == b.layer then
+					return a.id > b.id
+				end
+				return a.layer > b.layer
+			end)
+			reorder = false
+		end
 		love.graphics.setColor(255, 255, 255, 255)
-		love.graphics.printf("Click to focus!", 0, HEIGHT / 2 - 32, WIDTH, "center")
-	end
+		
+		for i = 1, #bg - 1 do
+			love.graphics.draw(bg[i].i, bg[i].q)
+		end
+		love.graphics.draw(bg[#bg].i, bg[#bg].q, 0, HEIGHT - 256 + 16)
+		
+		love.graphics.setFont(fonts.text)
+		love.graphics.setColor(0, 0, 0, 255)
+		love.graphics.print(table.concat({round(Player:getPos())}, ", "), 0, 0)
+		love.graphics.print(table.concat({round(Player:getVel())}, ", "), 0, 12)
+		love.graphics.print(tostring(Player:isOnGround()), 0, 24)
+		love.graphics.push()
+			love.graphics.translate(WIDTH / 2, HEIGHT / 2)
+			love.graphics.scale(1, -1)
+			love.graphics.push()
+				love.graphics.translate(Camera.x, Camera.y)
+				love.graphics.scale(Camera.sx, Camera.sy)
+				love.graphics.rotate(Camera.r)
+				for k, v in ipairs(draw) do
+					love.graphics.push()
+						love.graphics.translate(v:getPos())
+						love.graphics.rotate(v:getRotation())
+						love.graphics.setColor(v:getColor())
+						v:draw()
+					love.graphics.pop()
+				end
+			love.graphics.pop()
+		love.graphics.pop()
+		if not focused then
+			love.graphics.setColor(0, 0, 0, 255)
+			love.graphics.setFont(fonts.banner)
+			love.graphics.rectangle("fill", 0, HEIGHT / 2 - 32, WIDTH, 64)
+			love.graphics.setColor(255, 255, 255, 255)
+			love.graphics.printf("Click to focus!", 0, HEIGHT / 2 - 32, WIDTH, "center")
+		end
+	love.graphics.setCanvas()
+	love.graphics.draw(gamecanvas, 0, 0)
 end
 function love.update(dt)
 	if not focused then return end
 	for k, v in ipairs(ents) do
+		if not LEVELEDIT then
+			v:think(dt)
+		end
 		v:update(dt)
 	end
 	for i = 1, #bg - 1 do
@@ -571,21 +579,18 @@ function love.keypressed(key)
 end
 function love.mousepressed(x, y, but)
 	if not focused then return end
-	GhostPosX, GhostPosY = Ghost:getPos()
+	if not LEVELEDIT then return end
+	if but == "wd" then
+		Camera.x = Camera.x - 100
+	elseif but == "wu" then
+		Camera.x = Camera.x + 100
+	end
 end
 function love.mousereleased(x, y, but)
 	if not focused then return end
-	if but == "l" then
-		local gx, gy = Ghost:getPos()
-		local w, h = math.abs(GhostPosX - gx), math.abs(GhostPosY - gy)
-		w = w + 32
-		h = h + 32
-		local a = Entity:new()
-		a:setSize(w, h)
-		a:setPos(center(gx, gy, GhostPosX, GhostPosY))
-		a:spawn()
-	end
+	if not LEVELEDIT then return end
 end
 function love.focus(f)
+	if LEVELEDIT then return end
 	focused = f
 end
